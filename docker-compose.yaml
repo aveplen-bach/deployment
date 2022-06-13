@@ -21,6 +21,8 @@ x-minio-common:
     interval: 30s
     timeout: 20s
     retries: 3
+  networks:
+    - bach
 
 services:
   authentication-service:
@@ -47,6 +49,8 @@ services:
       - config-service
       - face-recognition-service
       - authdb
+    networks:
+      - bach
 
   s3-gateway:
     build:
@@ -64,6 +68,8 @@ services:
       - "8082:8082"
     depends_on:
       - nginx
+    networks:
+      - bach
 
   config-gateway:
     build:
@@ -79,6 +85,9 @@ services:
       - "8083:8083"
     depends_on:
       - config-service
+      - authentication-service
+    networks:
+      - bach
 
   config-service:
     build:
@@ -97,6 +106,8 @@ services:
     depends_on:
       - nginx
       - cfgdb
+    networks:
+      - bach
 
   face-recognition-service:
     build:
@@ -108,6 +119,8 @@ services:
       - "30035:30035"
     depends_on:
       - s3-gateway
+    networks:
+      - bach
 
   resource-service:
     build:
@@ -121,6 +134,8 @@ services:
       - "8086:8086"
     depends_on:
       - authentication-service
+    networks:
+      - bach
 
   authdb:
     image: postgres:13.3
@@ -139,6 +154,8 @@ services:
     restart: unless-stopped
     ports:
       - "5432:5432"
+    networks:
+      - bach
 
   cfgdb:
     image: postgres:13.3
@@ -157,6 +174,21 @@ services:
     restart: unless-stopped
     ports:
       - "5433:5432"
+    networks:
+      - bach
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - authentication-service
+      - config-gateway
+      - resource-service
+    networks:
+      - bach
 
   minio1:
     <<: *minio-common
@@ -199,6 +231,8 @@ services:
       - minio2
       - minio3
       - minio4
+    networks:
+      - bach
 
 volumes:
   data1-1:
@@ -211,3 +245,8 @@ volumes:
   data4-2:
   authdb:
   cfgdb:
+
+
+networks:
+  bach:
+    driver: bridge
