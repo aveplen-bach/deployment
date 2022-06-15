@@ -95,7 +95,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - GRPC_LISTEN_ADDR=:30034
-      - DBPORT=5433
+      - DBPORT=5432
       - DBHOST=cfgdb
       - DBNAME=cfgdb
       - DBUSER=cfgdb
