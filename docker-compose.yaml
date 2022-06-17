@@ -12,12 +12,7 @@ x-minio-common:
     - "9001"
   healthcheck:
     test:
-      [
-        "CMD",
-        "curl",
-        "-f",
-        "http://localhost:9000/minio/health/live"
-      ]
+      [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
     interval: 30s
     timeout: 20s
     retries: 3
@@ -41,6 +36,7 @@ services:
       - DBNAME=authdb
       - DBUSER=authdb
       - DBPASSWORD=authdb
+      - DEBUG=0
     ports:
       - "30031:30031"
       - "8081:8081"
@@ -50,11 +46,17 @@ services:
       config-service:
         condition: service_started
       face-recognition-service:
-        condition: service_started
+        condition: service_healthy
       authdb:
         condition: service_healthy
+    healthcheck:
+      test:
+        [ "CMD", "curl", "-f", "http://localhost:8081/auth/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
     networks:
-      - bach
+    - bach
 
   s3-gateway:
     build:
@@ -134,19 +136,14 @@ services:
       - "30035:30035"
     depends_on:
       - s3-gateway
-    networks:
-      - bach
     healthcheck:
       test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:8085/facerec/health/live"
-        ]
+        [ "CMD", "curl", "-f", "http://localhost:8085/facerec/health/live" ]
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - bach
 
   resource-service:
     build:
@@ -159,7 +156,7 @@ services:
     ports:
       - "8086:8086"
     depends_on:
-      - authentication-service
+      authentication-service: service_healthy
     networks:
       - bach
 
@@ -210,9 +207,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - authentication-service
-      - config-gateway
-      - resource-service
+      authentication-service: service_healthy
+      config-gateway: service_started
+      resource-service: service_started
     networks:
       - bach
 
