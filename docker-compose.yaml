@@ -136,6 +136,17 @@ services:
       - s3-gateway
     networks:
       - bach
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8085/facerec/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   resource-service:
     build:
