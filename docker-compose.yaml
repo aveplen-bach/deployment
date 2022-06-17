@@ -112,12 +112,11 @@ services:
       context: ../config-gateway
       dockerfile: Dockerfile
     environment:
-      - GRPC_LISTEN_ADDR=:30033
+      - HTTP_LISTEN_ADDR=:8083
       - SJWT_SECRET=mysecret
       - AUTH_CLIENT_ADDR=authentication-service:30031
       - CONFIG_CLIENT_ADDR=config-service:30034
     ports:
-      - "30033:30033"
       - "8083:8083"
     depends_on:
       config-service:
@@ -179,6 +178,7 @@ services:
       - GRPC_LISTEN_ADDR=:30035
     ports:
       - "30035:30035"
+      - "8085:8085"
     depends_on:
       s3-gateway:
         condition: service_healthy
