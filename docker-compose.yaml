@@ -12,7 +12,12 @@ x-minio-common:
     - "9001"
   healthcheck:
     test:
-      [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      [
+        "CMD",
+        "curl",
+        "-f",
+        "http://localhost:9000/minio/health/live"
+      ]
     interval: 30s
     timeout: 20s
     retries: 3
@@ -42,21 +47,26 @@ services:
       - "8081:8081"
     depends_on:
       s3-gateway:
-        condition: service_started
+        condition: service_healthy
       config-service:
-        condition: service_started
+        condition: service_healthy
       face-recognition-service:
         condition: service_healthy
       authdb:
         condition: service_healthy
     healthcheck:
       test:
-        [ "CMD", "curl", "-f", "http://localhost:8081/auth/health/live" ]
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8081/auth/health/live"
+        ]
       interval: 30s
       timeout: 20s
       retries: 3
     networks:
-    - bach
+      - bach
 
   s3-gateway:
     build:
@@ -83,6 +93,17 @@ services:
         condition: service_healthy
       minio4:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8082/s3g/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
     networks:
       - bach
 
@@ -99,8 +120,21 @@ services:
       - "30033:30033"
       - "8083:8083"
     depends_on:
-      - config-service
-      - authentication-service
+      config-service:
+        condition: service_healthy
+      authentication-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8083/cg/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
     networks:
       - bach
 
@@ -122,7 +156,18 @@ services:
       nginx:
         condition: service_started
       cfgdb:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8084/cs/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
     networks:
       - bach
 
@@ -135,10 +180,16 @@ services:
     ports:
       - "30035:30035"
     depends_on:
-      - s3-gateway
+      s3-gateway:
+        condition: service_healthy
     healthcheck:
       test:
-        [ "CMD", "curl", "-f", "http://localhost:8085/facerec/health/live" ]
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8085/facerec/health/live"
+        ]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -156,7 +207,8 @@ services:
     ports:
       - "8086:8086"
     depends_on:
-      authentication-service: service_healthy
+      authentication-service:
+        condition: service_healthy
     networks:
       - bach
 
@@ -207,9 +259,12 @@ services:
     ports:
       - "80:80"
     depends_on:
-      authentication-service: service_healthy
-      config-gateway: service_started
-      resource-service: service_started
+      authentication-service:
+        condition: service_healthy
+      config-gateway:
+        condition: service_healthy
+      resource-service:
+        condition: service_started
     networks:
       - bach
 
@@ -250,10 +305,14 @@ services:
       - "9000:9000"
       - "9001:9001"
     depends_on:
-      - minio1
-      - minio2
-      - minio3
-      - minio4
+      minio1:
+        condition: service_healthy
+      minio2:
+        condition: service_healthy
+      minio3:
+        condition: service_healthy
+      minio4:
+        condition: service_healthy
     networks:
       - bach
 
